@@ -9,7 +9,7 @@ class Ladron(pygame.sprite.Sprite):
         self.image.fill(VERDE)
         self.rect = self.image.get_rect()
         self.rect.center = posicion_inicial
-        self.velocidad = 1 # Ajusta este valor para cambiar la velocidad del ladrón
+        self.velocidad = 2 # Ajusta este valor para cambiar la velocidad del ladrón
     
     def update(self, teclas, mapa, celda_ancho, celda_alto):
         movimiento_x = 0

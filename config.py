@@ -5,3 +5,6 @@ BLANCO = (255, 255, 255)
 NEGRO = (0, 0, 0)
 ROJO = (255, 0, 0)
 VERDE = (0, 255, 0)
+
+TAM_GUARDIA = 20
+TAM_LADRON = 20

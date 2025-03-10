@@ -7,7 +7,7 @@ from mapa import PASILLO  # Añadir esta línea
 class Guardia(pygame.sprite.Sprite):
     def __init__(self, posicion_inicial):
         super().__init__()
-        self.image = pygame.Surface((30, 30))
+        self.image = pygame.Surface((TAM_GUARDIA, TAM_GUARDIA))
         self.image.fill(ROJO)
         self.rect = self.image.get_rect()
         self.rect.center = posicion_inicial

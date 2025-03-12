@@ -17,33 +17,12 @@ pygame.display.set_caption("Ladrón de Supermercado")
 # Crea un reloj
 clock = pygame.time.Clock()
 
-# Función para obtener posiciones válidas (solo pasillos)
-def obtener_posiciones_validas(mapa):
-    posiciones_validas = []
-    for y, fila in enumerate(mapa):
-        for x, celda in enumerate(fila):
-            if celda == PASILLO:  # Solo agregar celdas que son pasillos
-                posiciones_validas.append((x, y))
-    return posiciones_validas
-
-# Obtener posiciones válidas desde el mapa
-posiciones_validas = obtener_posiciones_validas(MAPA)
-
 # Inicialización de personajes y objetos
-# Posición inicial del ladrón
-x, y = random.choice(posiciones_validas)
-posicion_ladron = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
-ladron = Ladron(posicion_ladron)
-
-# Inicialización de los guardias
-guardias = pygame.sprite.Group()
-for _ in range(3):  # Número de guardias (ajustable)
-    x, y = random.choice(posiciones_validas)
-    posicion_guardia = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
-    guardia = Guardia(posicion_guardia)
-    guardias.add(guardia)
-
-# Agrupa todos los sprites
+ladron = Ladron((CELDA_ANCHO + CELDA_ANCHO//2, CELDA_ALTO + CELDA_ALTO//2))
+guardias = pygame.sprite.Group(Guardia((2 * CELDA_ANCHO + CELDA_ANCHO//2, 2 * CELDA_ALTO + CELDA_ALTO//2)), 
+                              Guardia((4 * CELDA_ANCHO + CELDA_ANCHO//2, 2 * CELDA_ALTO + CELDA_ALTO//2)), 
+                              Guardia((6 * CELDA_ANCHO + CELDA_ANCHO//2, 2 * CELDA_ALTO + CELDA_ALTO//2)))
+botines = pygame.sprite.Group()  # Añadir los botines aquí
 todos_los_sprites = pygame.sprite.Group(ladron, *guardias)
 
 def dibujar_mapa(pantalla, mapa):
@@ -63,14 +42,15 @@ def bucle_juego():
             if evento.type == pygame.QUIT:
                 corriendo = False
         
-        # Actualización del tiempo en milisegundos convertido a segundos
+        #Se anade funcion para convertir segundos a milisegundos        
         delta_time = clock.tick(60) / 1000.0  # Convierte milisegundos a segundos
-        
-        # Actualización de los personajes
+                
+          
+#       ladron.update(teclas, MAPA, CELDA_ANCHO, CELDA_ALTO)
         ladron.update(teclas, MAPA, CELDA_ANCHO, CELDA_ALTO, delta_time)
+#       guardias.update(ladron, MAPA, CELDA_ANCHO, CELDA_ALTO)
         guardias.update(ladron, MAPA, CELDA_ANCHO, CELDA_ALTO, delta_time)  
 
-        # Dibuja todo
         pantalla.fill(COLOR_FONDO)
         dibujar_mapa(pantalla, MAPA)
         todos_los_sprites.draw(pantalla)
@@ -105,4 +85,3 @@ def menu_principal():
         pygame.display.flip()
 
 menu_principal()
-   

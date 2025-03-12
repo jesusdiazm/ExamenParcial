@@ -30,15 +30,14 @@ def heuristica(a, b):
 def obtener_vecinos(nodo, mapa, celda_ancho, celda_alto):
     vecinos = []
     x, y = nodo
-    movimientos = [(-celda_ancho, 0), (celda_ancho, 0), (0, -celda_alto), (0, celda_alto)]
+    movimientos = [(-1, 0), (1, 0), (0, -1), (0, 1)]  # Movimientos en celdas (arriba, abajo, izquierda, derecha)
     for dx, dy in movimientos:
         vecino = (x + dx, y + dy)
-        if 0 <= vecino[0] < len(mapa[0]) * celda_ancho and 0 <= vecino[1] < len(mapa) * celda_alto:
-            celda_x = vecino[0] // celda_ancho
-            celda_y = vecino[1] // celda_alto
-            if mapa[celda_y][celda_x] == PASILLO:
+        if 0 <= vecino[0] < len(mapa[0]) and 0 <= vecino[1] < len(mapa):  # Dentro de los límites
+            if mapa[vecino[1]][vecino[0]] == PASILLO:  # Solo agregar pasillos
                 vecinos.append(vecino)
     return vecinos
+
 
 def dist_entre(a, b):
     return 1

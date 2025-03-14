@@ -8,8 +8,12 @@ from mapa import MAPA, PASILLO, PARED
 
 pygame.init()
 
-CELDA_ANCHO = 50
-CELDA_ALTO = 50
+pygame.mixer.init()
+
+#Cargar el audio de fondo
+pygame.mixer.music.load("assets/audio/sound.mp3")  # Ruta del archivo de audio
+pygame.mixer.music.set_volume(0.5)  # Volumen del 0.0 al 1.0
+pygame.mixer.music.play(-1)  # Repetir indefinidamente (-1)
 
 pantalla = pygame.display.set_mode((len(MAPA[0]) * CELDA_ANCHO, len(MAPA) * CELDA_ALTO))
 pygame.display.set_caption("Ladrón de Supermercado")
@@ -32,15 +36,26 @@ posiciones_validas = obtener_posiciones_validas(MAPA)
 # Inicialización de personajes y objetos
 # Posición inicial del ladrón
 x, y = random.choice(posiciones_validas)
-posicion_ladron = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
-ladron = Ladron(posicion_ladron)
+
+
+#posicion_ladron = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
+posicion_ladron = (200, 100)
+#ladron = Ladron(posicion_ladron)
+ladron = Ladron(posicion_ladron, "assets/images/ladron.png")
 
 # Inicialización de los guardias
 guardias = pygame.sprite.Group()
 for _ in range(3):  # Número de guardias (ajustable)
     x, y = random.choice(posiciones_validas)
-    posicion_guardia = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
-    guardia = Guardia(posicion_guardia)
+#    posicion_guardia = (x * CELDA_ANCHO + CELDA_ANCHO // 2, y * CELDA_ALTO + CELDA_ALTO // 2)
+#    guardia = Guardia(posicion_guardia)
+    
+    # Posición inicial del guardia
+    posicion_guardia = (100, 150)
+
+    # Crear el guardia pasando la posición y la ruta de la imagen
+    guardia = Guardia(posicion_guardia, "assets/images/guardia.png")
+
     guardias.add(guardia)
 
 # Agrupa todos los sprites

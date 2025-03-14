@@ -1,69 +1,80 @@
 import pygame
 import random
-from config import *
-from astar import *
-from mapa import PASILLO  # Añadir esta línea
+from astar import a_star
+from mapa import PASILLO
 
+# Nodos del árbol de comportamiento
+class NodoComportamiento:
+    def ejecutar(self, guardia):
+        raise NotImplementedError
+
+class Selector(NodoComportamiento):
+    def __init__(self, nodos):
+        self.nodos = nodos
+
+    def ejecutar(self, guardia):
+        for nodo in self.nodos:
+            if nodo.ejecutar(guardia):  # Ejecuta hasta que un nodo tenga éxito
+                return True
+        return False
+
+class Patrullar(NodoComportamiento):
+    def ejecutar(self, guardia):
+        print("Guardia está patrullando...")
+        guardia.mover_aleatorio(guardia.mapa, guardia.celda_ancho, guardia.celda_alto, guardia.delta_time)
+        return True
+
+class Perseguir(NodoComportamiento):
+    def ejecutar(self, guardia):
+        if guardia.ver_ladron(guardia.ladron):
+            print("Guardia persiguiendo al ladrón...")
+            inicio = (guardia.rect.centerx // guardia.celda_ancho, guardia.rect.centery // guardia.celda_alto)
+            meta = (guardia.ladron.rect.centerx // guardia.celda_ancho, guardia.ladron.rect.centery // guardia.celda_alto)
+
+            # Validar que inicio y meta están en celdas válidas
+            if guardia.mapa[inicio[1]][inicio[0]] != PASILLO or guardia.mapa[meta[1]][meta[0]] != PASILLO:
+                print(f"Error: Guardia en {inicio} o ladrón en {meta} no están en un pasillo.")
+                return False
+
+            guardia.camino = a_star(inicio, meta, guardia.mapa, guardia.celda_ancho, guardia.celda_alto)
+            if guardia.camino and len(guardia.camino) > 1:
+                guardia.mover_hacia(guardia.camino[1], guardia.delta_time)
+            return True
+        return False
+
+class Esperar(NodoComportamiento):
+    def ejecutar(self, guardia):
+        print("Guardia está esperando...")
+        return True
+
+# Clase principal del guardia
 class Guardia(pygame.sprite.Sprite):
-    def __init__(self, posicion_inicial):
+    def __init__(self, posicion_inicial, imagen_guardia_path):
         super().__init__()
-        self.image = pygame.Surface((TAM_GUARDIA, TAM_GUARDIA))
-        self.image.fill(ROJO)
+        # Cargar la imagen del guardia
+        self.image = pygame.image.load("assets/images/guardia.png")  # Ruta de la imagen del guardia
+        self.image = pygame.transform.scale(self.image, (30, 30))  # Escalar la imagen al tamaño deseado
         self.rect = self.image.get_rect()
         self.rect.center = posicion_inicial
-        self.velocidad = 5  # Velocidad predeterminada
-        self.direccion = random.choice(['izquierda', 'derecha', 'arriba', 'abajo'])  # Inicialización de dirección
-        self.camino = []  # Usado para A*
 
-
-    def update(self, ladron, mapa, celda_ancho, celda_alto, delta_time):
-        if self.ver_ladron(ladron):  # Si el ladrón está visible
-            # Convertir posiciones en píxeles a índices del mapa
-            inicio = (self.rect.centerx // celda_ancho, self.rect.centery // celda_alto)
-            meta = (ladron.rect.centerx // celda_ancho, ladron.rect.centery // celda_alto)
-            
-            # Validar que ambas posiciones estén en pasillos
-            if mapa[inicio[1]][inicio[0]] != PASILLO or mapa[meta[1]][meta[0]] != PASILLO:
-                print(f"Error: Guardia en {inicio} o ladrón en {meta} no están en un pasillo.")
-                return
-            
-            # Depuración: Imprimir posiciones iniciales y meta
-            print(f"Inicio: {inicio}, Meta: {meta}")
-            
-            # Calcular la ruta usando A*
-            self.camino = a_star(inicio, meta, mapa, celda_ancho, celda_alto)
-            print(f"Ruta hacia ladrón: {self.camino}")  # Depuración: Imprimir la ruta
-            
-            if self.camino and len(self.camino) > 1:
-                self.mover_hacia(self.camino[1], delta_time)  # Ir al siguiente paso
-        else:
-            self.mover_aleatorio(mapa, celda_ancho, celda_alto, delta_time)
-
-            
-            
-
+        self.velocidad = 200  # Ajusta la velocidad del guardia
+        self.camino = []  # Lista de pasos calculados por A*
+        self.direccion = random.choice(['izquierda', 'derecha', 'arriba', 'abajo'])
 
     def ver_ladron(self, ladron):
+        # Determina si el ladrón está en rango de visión
         distancia = ((self.rect.centerx - ladron.rect.centerx) ** 2 + (self.rect.centery - ladron.rect.centery) ** 2) ** 0.5
-        return distancia < 200  # Ajusta este valor según el rango de visión que desees
-
+        return distancia < 200  # Ajusta el rango de visión
 
     def mover_hacia(self, destino, delta_time):
+        # Calcula el movimiento hacia un destino usando A*
         dx, dy = destino[0] - self.rect.centerx, destino[1] - self.rect.centery
         distancia = (dx ** 2 + dy ** 2) ** 0.5
-        if distancia > 1: # Moverse solo si la distancia es mayor a 1 píxel
+        if distancia > 1:  # Mover solo si hay distancia suficiente
             direccion_x = dx / distancia
             direccion_y = dy / distancia
-            # Moverse hacia el destino usando velocidad y delta_time
             self.rect.x += int(direccion_x * self.velocidad * delta_time)
             self.rect.y += int(direccion_y * self.velocidad * delta_time)
-            
-            print(f"Moviendo hacia: {destino}, dx: {dx}, dy: {dy}")
-
-            
-        else:
-            print("Destino alcanzado o demasiado cerca para moverse.")
-
 
     def mover_aleatorio(self, mapa, celda_ancho, celda_alto, delta_time):
         desplazamiento_x, desplazamiento_y = 0, 0
@@ -81,12 +92,26 @@ class Guardia(pygame.sprite.Sprite):
         x = int(nueva_pos_x // celda_ancho)
         y = int(nueva_pos_y // celda_alto)
 
-        # Validación para moverse solo en pasillos
         if 0 <= x < len(mapa[0]) and 0 <= y < len(mapa) and mapa[y][x] == PASILLO:
             self.rect.x = nueva_pos_x
             self.rect.y = nueva_pos_y
         else:
-            # Cambiar de dirección si encuentra un obstáculo
-            self.direccion = random.choice(['izquierda', 'derecha', 'arriba', 'abajo'])
+            self.direccion = random.choice(['izquierda', 'derecha', 'arriba', 'abajo'])  # Cambiar dirección si hay obstáculo
 
+    def update(self, ladron, mapa, celda_ancho, celda_alto, delta_time):
+        # Asignar datos necesarios para los comportamientos
+        self.ladron = ladron
+        self.mapa = mapa
+        self.celda_ancho = celda_ancho
+        self.celda_alto = celda_alto
+        self.delta_time = delta_time
 
+        # Construir el árbol de comportamiento
+        arbol_comportamiento = Selector([
+            Perseguir(),
+            Patrullar(),
+            Esperar()
+        ])
+
+        # Ejecutar el árbol de comportamiento
+        arbol_comportamiento.ejecutar(self)

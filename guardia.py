@@ -52,7 +52,7 @@ class Guardia(pygame.sprite.Sprite):
     def __init__(self, posicion_inicial, imagen_guardia_path):
         super().__init__()
         # Cargar la imagen del guardia
-        self.image = pygame.image.load("assets/images/guardia.png")  # Ruta de la imagen del guardia
+        self.image = pygame.image.load("assets/images/guardia.png") # Ruta de la imagen del guardia
         self.image = pygame.transform.scale(self.image, (30, 30))  # Escalar la imagen al tamaño deseado
         self.rect = self.image.get_rect()
         self.rect.center = posicion_inicial
